@@ -1123,7 +1123,14 @@ if __name__ == "__main__":
 
 
     if len(args_parsed.bookid) > 0:
-        bookID = args_parsed.bookid.split("/")[-1]          # Only get book ID from URL
+        bookid_regex = r"['\"]*http[s]?://[a-zA-Z0-9.\-/]+(\d{10,15})/*['\"]*"          # Matches book URL
+        pattern = re.compile(bookid_regex)
+        match = re.search(pattern, args_parsed.bookid)
+        if match:
+            bookID = match.group(1)
+        else:
+            bookID = None
+            arguments.error("Invalid book ID or URL")
         if str.isdecimal(bookID):
             args_parsed.bookid = bookID
         else:

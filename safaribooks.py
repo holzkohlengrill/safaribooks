@@ -1116,6 +1116,16 @@ def process_arguments(arguments):
         if parsed_args.no_cookies:
             arguments.error("invalid option: `--no-cookies` is valid only if you use the `--cred` option")
 
+    if len(parsed_args.bookid) > 0:
+        bookID = parsed_args.bookid.split("/")[-1]          # Only get book ID from URL
+        print(f"bookID: {bookID}")
+        if str.isdecimal(bookID):
+            parsed_args.bookid = bookID
+        else:
+            arguments.error("Invalid book ID")
+    else:
+        arguments.error("Book ID must not be empty")
+
     if parsed_args.proxy:
         proxy_regex = r"http[s]?://[a-zA-Z0-9.-]+:\d{4}"          # Matches proxy URL
         pattern = re.compile(proxy_regex)

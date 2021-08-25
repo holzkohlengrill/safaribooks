@@ -31,6 +31,10 @@ SAFARI_BASE_URL = "https://" + SAFARI_BASE_HOST
 API_ORIGIN_URL = "https://" + API_ORIGIN_HOST
 PROFILE_URL = SAFARI_BASE_URL + "/profile/"
 
+# DEBUG
+USE_PROXY = False
+PROXIES = {"https": "https://127.0.0.1:8080"}
+
 
 class Display:
     BASE_FORMAT = logging.Formatter(
@@ -311,9 +315,9 @@ class SafariBooks:
         self.display.intro()
 
         self.session = requests.Session()
-        if args_parsed.proxies:
-            self.session.proxies = args_parsed.proxies
-            # self.session.verify = False
+        if USE_PROXY:  # DEBUG
+            self.session.proxies = PROXIES
+            self.session.verify = False
 
         self.session.headers.update(self.HEADERS)
 
@@ -1058,10 +1062,7 @@ if __name__ == "__main__":
         "--login", action='store_true',
         help="Prompt for credentials used to perform the auth login on Safari Books Online."
     )
-    arguments.add_argument(
-        "--proxy",
-        help="Add proxy URL and port (e.g. `https://127.0.0.1:8080`)"
-    )
+
     arguments.add_argument(
         "--no-cookies", dest="no_cookies", action='store_true',
         help="Prevent your session data to be saved into `cookies.json` file."
@@ -1108,18 +1109,14 @@ if __name__ == "__main__":
         if args_parsed.no_cookies:
             arguments.error("invalid option: `--no-cookies` is valid only if you use the `--cred` option")
 
-    if args_parsed.proxy:
-        proxy_regex = r"http[s]?://[a-zA-Z0-9.-]+:\d{4}"          # Matches proxy URL
-        pattern = re.compile(proxy_regex)
-        match = re.search(pattern, args_parsed.proxy)
-        if match:
-            result = match.group()
-            args_parsed.proxies = {
-                "http": result,
-                "https": result
-            }
+    if len(args_parsed.bookid) > 0:
+        bookID = args_parsed.bookid.split("/")[-1]          # Only get book ID from URL
+        if str.isdecimal(bookID):
+            args_parsed.bookid = bookID
         else:
-            arguments.error(f"Incorrect proxy format (should match the regex: `{proxy_regex}`)")
+            arguments.error("Invalid book ID")
+    else:
+        arguments.error("Book ID must not be empty")
 
 
     SafariBooks(args_parsed)
